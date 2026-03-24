@@ -10,5 +10,8 @@ if [ "$DISABLE_WP_CRON" = "true" ]; then
     export WORDPRESS_CONFIG_EXTRA="define('DISABLE_WP_CRON', true);"
 fi
 
+# Ensure wp-content and subdirectories are writable by Apache
+chown -R www-data:www-data /var/www/html/wp-content
+
 # Hand off to the original WordPress entrypoint
 exec docker-entrypoint.sh "$@"
