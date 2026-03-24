@@ -1,0 +1,21 @@
+# Environment
+.env
+
+# Docker data (if bind-mounted)
+wp-data/
+db-data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs
+*.log
+
+# Plugins (Phase 2 - with-plugins branch)
+plugins/
