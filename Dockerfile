@@ -13,3 +13,20 @@ RUN curl -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh
 
 # Allow running WP-CLI as root (needed in Docker)
 ENV WP_CLI_ALLOW_ROOT=1
+
+# Disable WP's built-in PHP cron (runs on every page load, slow + unreliable)
+# and use a real system cron instead
+ENV DISABLE_WP_CRON=true
+
+# Install cron and set up WP-Cron to run every minute via system cron
+RUN apt-get update && apt-get install -y --no-install-recommends cron \
+    && rm -rf /var/lib/apt/lists/* \
+    && echo '* * * * * www-data cd /var/www/html && /usr/local/bin/wp cron event run --due-now >> /var/log/wp-cron.log 2>&1' \
+       > /etc/cron.d/wp-cron \
+    && chmod 0644 /etc/cron.d/wp-cron
+
+# Custom entrypoint: start cron daemon alongside Apache
+COPY docker-entrypoint-extra.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint-extra.sh
+ENTRYPOINT ["docker-entrypoint-extra.sh"]
+CMD ["apache2-foreground"]
