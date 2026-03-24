@@ -14,6 +14,9 @@ RUN curl -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh
 # Allow running WP-CLI as root (needed in Docker)
 ENV WP_CLI_ALLOW_ROOT=1
 
+# Increase PHP upload limits for plugin/theme uploads
+COPY php-uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 # Disable WP's built-in PHP cron (runs on every page load, slow + unreliable)
 # and use a real system cron instead
 ENV DISABLE_WP_CRON=true
