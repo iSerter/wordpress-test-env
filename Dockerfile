@@ -24,7 +24,9 @@ ENV DISABLE_WP_CRON=true
 # Install cron and set up WP-Cron to run every minute via system cron
 RUN apt-get update && apt-get install -y --no-install-recommends cron \
     && rm -rf /var/lib/apt/lists/* \
-    && echo '* * * * * www-data cd /var/www/html && /usr/local/bin/wp cron event run --due-now >> /var/log/wp-cron.log 2>&1' \
+    && printf '%s\n' \
+       '* * * * * www-data cd /var/www/html && /usr/local/bin/wp cron event run --due-now >> /var/log/wp-cron.log 2>&1' \
+       '* * * * * www-data cd /var/www/html && /usr/local/bin/wp action-scheduler run >> /var/log/wp-cron.log 2>&1' \
        > /etc/cron.d/wp-cron \
     && chmod 0644 /etc/cron.d/wp-cron
 
