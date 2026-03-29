@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+# Fix wp-content ownership AFTER the WordPress entrypoint has finished
+# copying/creating files. This ensures directories like uploads/ and
+# upgrade/ (which the WP entrypoint may create as root) are writable
+# by Apache (www-data).
+chown -R www-data:www-data /var/www/html/wp-content
+
+exec apache2-foreground

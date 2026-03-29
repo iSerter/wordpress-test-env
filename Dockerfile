@@ -30,8 +30,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends cron \
        > /etc/cron.d/wp-cron \
     && chmod 0644 /etc/cron.d/wp-cron
 
+# Wrapper that fixes wp-content permissions after WP entrypoint setup
+COPY apache2-custom-foreground /usr/local/bin/
+RUN chmod +x /usr/local/bin/apache2-custom-foreground
+
 # Custom entrypoint: start cron daemon alongside Apache
 COPY docker-entrypoint-extra.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint-extra.sh
 ENTRYPOINT ["docker-entrypoint-extra.sh"]
-CMD ["apache2-foreground"]
