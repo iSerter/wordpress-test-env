@@ -1,0 +1,16 @@
+{
+  "name": "wordpress-test-env",
+  "private": true,
+  "description": "E2E tests for WordPress multi-version test environment",
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test tests/e2e/specs/smoke/",
+    "test:wp": "playwright test tests/e2e/specs/wordpress/",
+    "test:wc": "playwright test tests/e2e/specs/woocommerce/",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}

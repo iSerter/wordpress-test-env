@@ -17,5 +17,15 @@ Thumbs.db
 # Logs
 *.log
 
+# Database snapshots
+snapshots/
+
+# Node / Playwright
+node_modules/
+test-results/
+playwright-report/
+playwright/.cache/
+tests/e2e/.auth/
+
 # Plugins (Phase 2 - with-plugins branch)
 plugins/

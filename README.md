@@ -153,3 +153,38 @@ Expand to middle versions only if you suspect a version-specific issue.
 **WooCommerce compatibility**: Older WP versions use pinned WooCommerce versions. See `scripts/install-woocommerce.sh` for the version map.
 
 **DB init not running**: The `db/init.sql` only runs on first MariaDB startup. If you added new versions after the DB was created, either `./scripts/reset.sh` the whole stack or manually create the new database.
+
+## Helper Scripts
+
+Additional utility scripts for day-to-day testing workflows. See [docs/dev-guide/helper-scripts.md](docs/dev-guide/helper-scripts.md) for full documentation.
+
+| Script | Description |
+|--------|-------------|
+| `scripts/wp.sh` | Run WP-CLI commands: `./scripts/wp.sh 8.3 6.8 plugin list` |
+| `scripts/logs.sh` | View container logs: `./scripts/logs.sh 8.3 6.8 --follow` |
+| `scripts/open.sh` | Open instance in browser: `./scripts/open.sh 8.3 6.8` |
+| `scripts/health-check.sh` | HTTP health check (CI-friendly): `./scripts/health-check.sh` |
+| `scripts/install-plugin.sh` | Install plugin from slug or zip: `./scripts/install-plugin.sh query-monitor` |
+| `scripts/export-db.sh` | Export database snapshot: `./scripts/export-db.sh 8.3 6.8` |
+| `scripts/import-db.sh` | Import database snapshot: `./scripts/import-db.sh 8.3 6.8` |
+
+## E2E Browser Tests
+
+Playwright-based tests that verify WordPress + WooCommerce across all running instances. See [docs/dev-guide/e2e-tests.md](docs/dev-guide/e2e-tests.md) for full documentation.
+
+```bash
+# Quick start (handles npm install + browser setup automatically)
+./scripts/test.sh
+
+# Test a single instance
+./scripts/test.sh 8.3 6.8
+
+# Smoke tests only
+./scripts/test.sh --smoke
+
+# Use Playwright directly
+npm install && npx playwright install chromium
+npx playwright test --project="php8.3-wp6.8"
+```
+
+Tests cover: admin login, dashboard health, REST API, WooCommerce storefront, cart, checkout, and order verification. Instances are discovered automatically from running Docker containers.
