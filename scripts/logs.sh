@@ -6,29 +6,32 @@ FOLLOW=false
 TAIL=100
 POSITIONAL=()
 
-for arg in "$@"; do
-    case $arg in
-        --help)
-            echo "Usage: $0 [php_version wp_version] [--follow] [--tail N]"
-            echo "  View Docker container logs."
-            echo "  Examples: $0                       # last 100 lines, all instances"
-            echo "            $0 8.3 6.8               # last 100 lines, one instance"
-            echo "            $0 8.3 6.8 --follow      # stream live logs"
-            echo "            $0 --tail 50             # last 50 lines"
-            exit 0
-            ;;
-        --follow|-f) FOLLOW=true ;;
-        --tail)      ;; # value handled below
-        *)           POSITIONAL+=("$arg") ;;
-    esac
-done
+if [[ "${1:-}" == "--help" ]]; then
+    echo "Usage: $0 [php_version wp_version] [--follow] [--tail N]"
+    echo "  View Docker container logs."
+    echo "  Examples: $0                       # last 100 lines, all instances"
+    echo "            $0 8.3 6.8               # last 100 lines, one instance"
+    echo "            $0 8.3 6.8 --follow      # stream live logs"
+    echo "            $0 --tail 50             # last 50 lines"
+    exit 0
+fi
 
-# Parse --tail value
-for i in "${!@}"; do
-    if [[ "${!i}" == "--tail" ]]; then
-        next=$((i + 1))
-        TAIL="${!next}"
+SKIP_NEXT=false
+for i in $(seq 1 $#); do
+    arg="${!i}"
+    if [[ "$SKIP_NEXT" == true ]]; then
+        SKIP_NEXT=false
+        continue
     fi
+    case $arg in
+        --follow|-f) FOLLOW=true ;;
+        --tail)
+            next=$((i + 1))
+            TAIL="${!next}"
+            SKIP_NEXT=true
+            ;;
+        *) POSITIONAL+=("$arg") ;;
+    esac
 done
 
 cd "$PROJECT_DIR"

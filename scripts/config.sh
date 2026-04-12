@@ -92,7 +92,7 @@ wait_for_wp() {
 
 # ── Iteration ───────────────────────────────────────────────────
 # Call: for_each_instance callback [php_ver wp_ver]
-# With no filter → all 50 combos. With both → single combo.
+# With no filter → all valid combos. With both → single combo.
 for_each_instance() {
     local callback=$1
     local filter_php=${2:-}

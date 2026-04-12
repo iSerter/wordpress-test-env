@@ -12,7 +12,7 @@ test.describe('WooCommerce: Checkout', () => {
       await ajaxBtn.click();
       await page.waitForTimeout(2000);
     } else {
-      await page.locator('.products .product a').first().click();
+      await page.locator(WC.shop.productLink).first().click();
       await page.waitForLoadState('domcontentloaded');
       await page.locator('button[name="add-to-cart"], .single_add_to_cart_button').first().click();
       await page.waitForLoadState('domcontentloaded');

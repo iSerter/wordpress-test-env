@@ -28,4 +28,4 @@ OUTFILE="snapshots/${db}.sql"
 
 log_info "Exporting $svc database to $OUTFILE..."
 wp_exec "$svc" db export - > "$OUTFILE"
-log_success "Exported to $OUTFILE ($(du -h "$OUTFILE" | cut -f1) bytes)."
+log_success "Exported to $OUTFILE ($(du -h "$OUTFILE" | cut -f1))."

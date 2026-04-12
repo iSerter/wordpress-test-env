@@ -62,8 +62,8 @@ function parseDockerOutput(output: string): WpInstance[] {
 function parseInstanceList(envValue: string): WpInstance[] {
   return envValue.split(',').map((pair) => {
     const [php, wp] = pair.trim().split(':');
-    const phpSlug = php.replace('.', '');
-    const wpSlug = wp.replace('.', '');
+    const phpSlug = php.replaceAll('.', '');
+    const wpSlug = wp.replaceAll('.', '');
     const port = `${phpSlug}${wpSlug}`;
     return {
       php,

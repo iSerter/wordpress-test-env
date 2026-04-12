@@ -125,7 +125,7 @@ Expand to middle versions only if you suspect a version-specific issue.
                  ┌──────┴──────┐
                  │     db      │
                  │ MariaDB 10.11│
-                 │ 50 databases │
+                 │ 33 databases │
                  └─────────────┘
 ```
 
@@ -146,7 +146,7 @@ Expand to middle versions only if you suspect a version-specific issue.
 
 **Port conflict**: If a port is in use, check which service occupies it and either stop that service or adjust the version matrix.
 
-**Out of memory**: You don't need to run all 50 instances simultaneously. Start only what you need: `./scripts/start.sh 8.3 6.8`
+**Out of memory**: You don't need to run all 33 instances simultaneously. Start only what you need: `./scripts/start.sh 8.3 6.8`
 
 **Slow first build**: First run builds Docker images and downloads MariaDB. Subsequent starts are fast.
 
