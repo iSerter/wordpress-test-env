@@ -19,7 +19,7 @@ git clone <repo-url> && cd wordpress-test-env
 cp .env.example .env
 
 # Setup a single instance (fast)
-./scripts/init.sh 8.3 6.8
+./scripts/init.sh 8.1 6.9
 
 # Or setup everything (33 instances — takes a while)
 ./scripts/init.sh

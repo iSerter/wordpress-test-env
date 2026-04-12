@@ -71,7 +71,7 @@ log_error()   { echo -e "${RED}[ERR ]${NC} $*"; }
 # ── Docker helpers ──────────────────────────────────────────────
 wp_exec() {
     local service=$1; shift
-    docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T "$service" wp "$@"
+    docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T --user www-data "$service" wp "$@"
 }
 
 wait_for_wp() {
