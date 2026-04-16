@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/iSerter/wordpress-test-env/compare/wp-test-env-v0.1.3...wp-test-env-v0.1.4) (2026-04-16)
+
+
+### Bug Fixes
+
+* **action:** update description to clarify plugin bind-mounting functionality ([75043a9](https://github.com/iSerter/wordpress-test-env/commit/75043a9666d60a19a06d9371214330bdc8b5c60a))
+* **ci:** use correct release-please output names and add manual dispatch ([5e4d54e](https://github.com/iSerter/wordpress-test-env/commit/5e4d54ef51d8186afdcd309fb776a69fdef0ede5))
+
 ## [0.1.3](https://github.com/iSerter/wordpress-test-env/compare/wp-test-env-v0.1.2...wp-test-env-v0.1.3) (2026-04-16)
 
 
