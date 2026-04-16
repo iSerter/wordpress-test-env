@@ -1,7 +1,7 @@
 {
   "name": "@iserter/wp-test-env",
   "version": "0.1.1",
-  "description": "Docker-based multi-version WordPress + PHP test environment for plugin developers. Run WP 6.1–7.0 × PHP 8.1–8.5 in parallel, with WooCommerce and seeded e-commerce data.",
+  "description": "Docker-based multi-version WordPress + PHP test environment for plugin and theme developers. Run WP 6.1–7.0 × PHP 8.1–8.5 in parallel, with WooCommerce and seeded e-commerce data.",
   "keywords": [
     "wordpress",
     "woocommerce",
