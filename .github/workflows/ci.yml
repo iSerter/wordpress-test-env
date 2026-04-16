@@ -1,0 +1,17 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  golden-compose:
+    name: docker-compose.yml golden-file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify default compose output is unchanged
+        run: |
+          chmod +x ./tests/generate-compose.test.sh ./scripts/*.sh
+          ./tests/generate-compose.test.sh

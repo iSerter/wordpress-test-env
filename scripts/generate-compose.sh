@@ -75,6 +75,18 @@ for php_v in "${PHP_VERSIONS[@]}"; do
       WORDPRESS_DEBUG: "1"
     volumes:
       - ${svc}:/var/www/html
+EOF
+
+        # Append bind-mounts from PLUGIN_PATHS (if any). The block above
+        # closes `volumes:` without a trailing line so we can append under
+        # the same key before closing the service.
+        if [[ ${#PLUGIN_MOUNT_PATHS[@]} -gt 0 ]]; then
+            for i in "${!PLUGIN_MOUNT_PATHS[@]}"; do
+                echo "      - ${PLUGIN_MOUNT_PATHS[$i]}:/var/www/html/wp-content/plugins/${PLUGIN_MOUNT_NAMES[$i]}" >> "$COMPOSE"
+            done
+        fi
+
+        cat >> "$COMPOSE" <<EOF
     depends_on:
       db:
         condition: service_healthy

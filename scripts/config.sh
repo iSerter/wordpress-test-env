@@ -31,7 +31,13 @@ get_docker_tag() {
 
 is_valid_combo() {
     local php_v=$1 wp_v=$2
-    [[ " $(get_valid_php "$wp_v") " == *" $php_v "* ]]
+    # Rule 1: combo must exist as an official Docker image.
+    [[ " $(get_valid_php "$wp_v") " == *" $php_v "* ]] || return 1
+    # Rule 2: if wp-test-env.yml declares a matrix, restrict to that subset.
+    if [[ -n "${MATRIX_CONSTRAINT:-}" ]]; then
+        [[ " $MATRIX_CONSTRAINT " == *" $php_v:$wp_v "* ]] || return 1
+    fi
+    return 0
 }
 
 # ── Helpers ─────────────────────────────────────────────────────
@@ -125,3 +131,60 @@ parse_filter_args() {
         exit 1
     fi
 }
+
+# ── Plugin bind-mounts (opt-in) ─────────────────────────────────
+# PLUGIN_PATHS is a comma-separated list of directories to bind-mount
+# into every WP service at /var/www/html/wp-content/plugins/<basename>.
+# Paths may be absolute or relative to PROJECT_DIR. Empty = disabled,
+# preserving pre-0.2.0 behavior exactly.
+
+# Portable realpath: GNU realpath → python3 → pure-bash cd+pwd fallback.
+_abspath() {
+    if command -v realpath >/dev/null 2>&1; then
+        realpath "$1" 2>/dev/null
+    elif command -v python3 >/dev/null 2>&1; then
+        python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"
+    else
+        local d b
+        d=$(cd "$(dirname "$1")" 2>/dev/null && pwd) || return 1
+        b=$(basename "$1")
+        [[ "$b" == "." ]] && { echo "$d"; return 0; }
+        echo "$d/$b"
+    fi
+}
+
+PLUGIN_MOUNT_PATHS=()
+PLUGIN_MOUNT_NAMES=()
+parse_plugin_paths() {
+    PLUGIN_MOUNT_PATHS=()
+    PLUGIN_MOUNT_NAMES=()
+    [[ -z "${PLUGIN_PATHS:-}" ]] && return 0
+    local IFS=','
+    local raw path abs
+    for raw in $PLUGIN_PATHS; do
+        # trim leading/trailing whitespace
+        path="${raw#"${raw%%[![:space:]]*}"}"
+        path="${path%"${path##*[![:space:]]}"}"
+        [[ -z "$path" ]] && continue
+        # Resolve relative paths against PROJECT_DIR
+        if [[ "$path" != /* ]]; then
+            path="$PROJECT_DIR/$path"
+        fi
+        abs=$(_abspath "$path") || { log_error "PLUGIN_PATHS entry not found: $path"; exit 1; }
+        if [[ ! -d "$abs" ]]; then
+            log_error "PLUGIN_PATHS entry is not a directory: $abs"
+            exit 1
+        fi
+        PLUGIN_MOUNT_PATHS+=("$abs")
+        PLUGIN_MOUNT_NAMES+=("$(basename "$abs")")
+    done
+}
+
+# Load wp-test-env.yml (if present) AFTER .env but BEFORE parse_plugin_paths,
+# so yml-declared plugins flow through to the bind-mount machinery.
+# shellcheck disable=SC1091
+if [[ -f "$PROJECT_DIR/scripts/lib/load-config.sh" ]]; then
+    source "$PROJECT_DIR/scripts/lib/load-config.sh"
+fi
+
+parse_plugin_paths
