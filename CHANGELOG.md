@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/iSerter/wordpress-test-env/compare/wp-test-env-v0.1.2...wp-test-env-v0.1.3) (2026-04-16)
+
+
+### Bug Fixes
+
+* **ci:** publish npm package from release-please workflow ([bf4dd06](https://github.com/iSerter/wordpress-test-env/commit/bf4dd06409b4d91d76cd4bfc37e4633c033bf41e))
+* **package:** drop ./ prefix from bin path ([fe8736a](https://github.com/iSerter/wordpress-test-env/commit/fe8736aa8a57ac3f5d03d2401984dc708a675b38))
+
 ## [0.1.2](https://github.com/iSerter/wordpress-test-env/compare/wp-test-env-v0.1.1...wp-test-env-v0.1.2) (2026-04-16)
 
 
