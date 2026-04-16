@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=../wp-test-env.schema.json
+#
+# Annotated reference for wp-test-env.yml. Drop a file matching this shape
+# at the repo root (as wp-test-env.yml or .wp-test-env.yml) to drive the
+# test env from a committed config instead of positional CLI args.
+#
+# Every key is optional. Missing file = zero behavioral change.
+# Precedence: CLI args > environment variables > this file > built-in defaults.
+
+# Plugin paths to bind-mount into every WP container.
+# Each entry becomes /var/www/html/wp-content/plugins/<basename>.
+plugins:
+  - .
+  - ../shared-lib
+
+# Subset of PHP × WP combinations to run. Other combinations are skipped
+# entirely — generate-compose.sh won't emit services for them.
+matrix:
+  - { php: "8.1", wp: "6.9" }
+  - { php: "8.5", wp: "7.0" }
+
+# Seed settings.
+seed:
+  # Default true — installs WooCommerce and creates sample products,
+  # customers, orders, coupons. Set false for non-WooCommerce plugins to
+  # get a plain WP install and a measurably faster `init.sh`.
+  woocommerce: false
+
+# Lifecycle hooks — paths relative to the repo root or absolute.
+hooks:
+  # Runs at the end of scripts/init.sh with $1=php $2=wp as args.
+  post-init: ./hooks/my-setup.sh

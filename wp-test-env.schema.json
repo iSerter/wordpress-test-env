@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/iSerter/wordpress-test-env/blob/main/wp-test-env.schema.json",
+  "title": "wp-test-env configuration",
+  "description": "Project-level configuration for the wp-test-env multi-version WordPress test environment. Place at the repo root as wp-test-env.yml or .wp-test-env.yml.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "plugins": {
+      "type": "array",
+      "description": "Paths to bind-mount into every WP container at /var/www/html/wp-content/plugins/<basename>. Absolute or relative to the repo root.",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "matrix": {
+      "type": "array",
+      "description": "Subset of PHP × WordPress combinations to provision. When set, generate-compose.sh and all iteration scripts restrict to these pairs. Omit to use the full matrix.",
+      "items": {
+        "type": "object",
+        "required": ["php", "wp"],
+        "additionalProperties": false,
+        "properties": {
+          "php": {
+            "type": "string",
+            "pattern": "^8\\.[1-5]$",
+            "description": "PHP version, e.g. 8.3"
+          },
+          "wp": {
+            "type": "string",
+            "pattern": "^(6\\.[1-9]|7\\.0)$",
+            "description": "WordPress version, e.g. 6.8"
+          }
+        }
+      }
+    },
+    "seed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "woocommerce": {
+          "type": "boolean",
+          "default": true,
+          "description": "When false, skip WooCommerce install and sample data seeding during init."
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "post-init": {
+          "type": "string",
+          "description": "Path to a shell script executed at the end of init.sh. Relative paths resolve against the repo root. Receives two args: $1=php filter, $2=wp filter (empty when targeting all)."
+        }
+      }
+    }
+  }
+}
