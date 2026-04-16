@@ -1,0 +1,80 @@
+name: 'wp-test-env'
+description: 'Multi-version WordPress + PHP test environment for plugin CI. Boots a WP instance at the specified PHP × WP combo, bind-mounts your plugin, and optionally runs a command inside the container.'
+author: 'iSerter'
+
+branding:
+  icon: 'package'
+  color: 'blue'
+
+inputs:
+  php:
+    description: 'PHP version (e.g. "8.3"). Must match an official wordpress:<wp>-php<php>-apache image tag.'
+    required: true
+  wp:
+    description: 'WordPress version (e.g. "6.8").'
+    required: true
+  plugin:
+    description: 'Path to the plugin directory to bind-mount, relative to github.workspace.'
+    required: false
+    default: '.'
+  run:
+    description: 'Command to execute inside the WP container with workdir set to the plugin dir. Empty = just boot the env.'
+    required: false
+    default: ''
+  woocommerce:
+    description: 'Install WooCommerce and seed sample data. Set "false" for non-WC plugins — measurably faster.'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Materialize .env for wp-test-env
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        cat > .env <<ENVEOF
+        MYSQL_ROOT_PASSWORD=rootpassword
+        MYSQL_USER=wordpress
+        MYSQL_PASSWORD=wordpress
+        WP_ADMIN_USER=admin
+        WP_ADMIN_PASSWORD=admin
+        WP_ADMIN_EMAIL=admin@example.com
+        WP_SITE_TITLE="CI Test"
+        SEED_WOOCOMMERCE=${{ inputs.woocommerce }}
+        PLUGIN_PATHS=${{ github.workspace }}/${{ inputs.plugin }}
+        ENVEOF
+
+    - name: Regenerate docker-compose.yml
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: ./scripts/generate-compose.sh
+
+    - name: Boot instance
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: ./scripts/init.sh "${{ inputs.php }}" "${{ inputs.wp }}"
+
+    - name: Activate mounted plugin
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: ./scripts/activate-mounted-plugins.sh "${{ inputs.php }}" "${{ inputs.wp }}"
+
+    - name: Run user command
+      if: ${{ inputs.run != '' }}
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        WPTE_PHP: ${{ inputs.php }}
+        WPTE_WP: ${{ inputs.wp }}
+        WPTE_PLUGIN_DIR: ${{ github.workspace }}/${{ inputs.plugin }}
+        WPTE_RUN: ${{ inputs.run }}
+      run: |
+        php_slug="${WPTE_PHP//./}"
+        wp_slug="${WPTE_WP//./}"
+        svc="wp-${php_slug}-${wp_slug}"
+        plugin_basename=$(basename "$WPTE_PLUGIN_DIR")
+        docker compose exec -T \
+          --workdir "/var/www/html/wp-content/plugins/${plugin_basename}" \
+          "$svc" \
+          bash -lc "$WPTE_RUN"

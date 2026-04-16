@@ -1,0 +1,52 @@
+name: integration-example
+
+# Self-validates the reusable composite Action by running it against the
+# examples/example-plugin-with-tests/ plugin bundled in this repo.
+# Runs on PRs that touch the Action or its supporting scripts, and on pushes to main.
+
+on:
+  pull_request:
+    paths:
+      - 'action.yml'
+      - 'scripts/**'
+      - 'Dockerfile'
+      - 'docker-entrypoint-extra.sh'
+      - 'apache2-custom-foreground'
+      - 'examples/example-plugin-with-tests/**'
+      - '.github/workflows/integration-example.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'action.yml'
+      - 'scripts/**'
+      - 'Dockerfile'
+      - 'docker-entrypoint-extra.sh'
+      - 'apache2-custom-foreground'
+
+jobs:
+  boot-and-run:
+    name: php${{ matrix.php }} / wp${{ matrix.wp }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { php: "8.3", wp: "6.8", woocommerce: "true"  }
+          - { php: "8.5", wp: "7.0", woocommerce: "false" }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use the action from this checkout
+        uses: ./
+        with:
+          php: ${{ matrix.php }}
+          wp: ${{ matrix.wp }}
+          plugin: examples/example-plugin-with-tests
+          woocommerce: ${{ matrix.woocommerce }}
+          run: bash ./test.sh
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          docker compose -f ./docker-compose.yml logs --tail=200 || true
