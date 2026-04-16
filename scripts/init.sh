@@ -46,13 +46,26 @@ log_success "Database ready."
 echo ""
 "$PROJECT_DIR/scripts/setup-wordpress.sh" ${FILTER_PHP:+"$FILTER_PHP"} ${FILTER_WP:+"$FILTER_WP"}
 
-# ── 5. Install WooCommerce ─────────────────────────────────────
-echo ""
-"$PROJECT_DIR/scripts/install-woocommerce.sh" ${FILTER_PHP:+"$FILTER_PHP"} ${FILTER_WP:+"$FILTER_WP"}
+# ── 5. Install WooCommerce + seed data (opt-in) ────────────────
+if [[ "${SEED_WOOCOMMERCE:-true}" == "true" ]]; then
+    echo ""
+    "$PROJECT_DIR/scripts/install-woocommerce.sh" ${FILTER_PHP:+"$FILTER_PHP"} ${FILTER_WP:+"$FILTER_WP"}
 
-# ── 6. Seed dummy data ─────────────────────────────────────────
-echo ""
-"$PROJECT_DIR/scripts/seed-data.sh" ${FILTER_PHP:+"$FILTER_PHP"} ${FILTER_WP:+"$FILTER_WP"}
+    echo ""
+    "$PROJECT_DIR/scripts/seed-data.sh" ${FILTER_PHP:+"$FILTER_PHP"} ${FILTER_WP:+"$FILTER_WP"}
+else
+    log_info "Skipping WooCommerce install and data seeding (SEED_WOOCOMMERCE=false)."
+fi
+
+# ── 6. Post-init hook (opt-in) ─────────────────────────────────
+# If hooks/post-init.sh exists (or POST_INIT_HOOK points elsewhere), run it.
+# Receives "$FILTER_PHP" "$FILTER_WP" as args (empty when targeting all).
+HOOK="${POST_INIT_HOOK:-$PROJECT_DIR/hooks/post-init.sh}"
+if [[ -f "$HOOK" ]]; then
+    echo ""
+    log_info "Running post-init hook: $HOOK"
+    bash "$HOOK" "${FILTER_PHP:-}" "${FILTER_WP:-}"
+fi
 
 # ── 7. Summary ──────────────────────────────────────────────────
 echo ""
