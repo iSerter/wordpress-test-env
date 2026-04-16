@@ -4,17 +4,24 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to publish to npm (e.g. wp-test-env-v0.1.3). Skips release-please; runs only the publish job."
+        required: true
+        type: string
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
-      tag_name: ${{ steps.release.outputs['.--tag_name'] }}
-      version: ${{ steps.release.outputs['.--version'] }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -23,15 +30,40 @@ jobs:
 
   publish:
     needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true'
+    # Run when:
+    #   - push with release-please creating a release, OR
+    #   - manual dispatch with a tag (release-please job is skipped, but we override the default
+    #     "skip-if-needs-skipped" behavior via `!cancelled()`).
+    if: |
+      !cancelled() &&
+      (
+        (github.event_name == 'push' && needs.release-please.outputs.releases_created == 'true')
+        || github.event_name == 'workflow_dispatch'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write  # npm provenance
     steps:
+      - name: Resolve tag and expected version
+        id: ref
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+            VERSION="${TAG#wp-test-env-v}"
+          else
+            TAG="${{ needs.release-please.outputs.tag_name }}"
+            VERSION="${{ needs.release-please.outputs.version }}"
+          fi
+          if [[ -z "$TAG" || -z "$VERSION" ]]; then
+            echo "::error::Could not resolve tag or version (tag='$TAG', version='$VERSION')"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.release-please.outputs.tag_name }}
+          ref: ${{ steps.ref.outputs.tag }}
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -39,11 +71,13 @@ jobs:
       - name: Verify package.json version matches release
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          VERSION="${{ needs.release-please.outputs.version }}"
+          VERSION="${{ steps.ref.outputs.version }}"
           if [[ "$PKG_VERSION" != "$VERSION" ]]; then
             echo "::error::package.json version ($PKG_VERSION) does not match release version ($VERSION)"
             exit 1
           fi
+      - name: Install dependencies
+        run: npm ci
       - name: Publish to npm
         run: npm publish --provenance --access public
         env:
