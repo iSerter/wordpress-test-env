@@ -1,5 +1,5 @@
 name: 'wp-test-env'
-description: 'Multi-version WordPress + PHP test environment for plugin CI. Boots a WP instance at the specified PHP × WP combo, bind-mounts your plugin, and optionally runs a command inside the container.'
+description: 'Multi-version WordPress + PHP test environment for plugin CI. Bind-mounts your plugin, and optionally runs a command inside the container.'
 author: 'iSerter'
 
 branding:
