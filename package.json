@@ -1,16 +1,82 @@
 {
-  "name": "wordpress-test-env",
-  "private": true,
-  "description": "E2E tests for WordPress multi-version test environment",
+  "name": "@iserter/wp-test-env",
+  "version": "0.1.1",
+  "description": "Docker-based multi-version WordPress + PHP test environment for plugin developers. Run WP 6.1–7.0 × PHP 8.1–8.5 in parallel, with WooCommerce and seeded e-commerce data.",
+  "keywords": [
+    "wordpress",
+    "woocommerce",
+    "testing",
+    "docker",
+    "wp-cli",
+    "playwright",
+    "plugin-development"
+  ],
+  "homepage": "https://github.com/iSerter/wordpress-test-env#readme",
+  "bugs": "https://github.com/iSerter/wordpress-test-env/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iSerter/wordpress-test-env.git"
+  },
+  "license": "MIT",
+  "author": "iSerter",
+  "bin": {
+    "wp-test-env": "./bin/wp-test-env.js"
+  },
+  "exports": {
+    "./playwright": {
+      "types": "./dist/playwright/index.d.ts",
+      "default": "./dist/playwright/index.js"
+    },
+    "./playwright/setup": {
+      "types": "./dist/playwright/setup.d.ts",
+      "default": "./dist/playwright/setup.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "hooks/",
+    "examples/example-plugin/",
+    "Dockerfile",
+    "docker-entrypoint-extra.sh",
+    "apache2-custom-foreground",
+    "php-uploads.ini",
+    "wp-test-env.schema.json",
+    "examples/",
+    "playwright.config.ts",
+    "tsconfig.json",
+    "tests/",
+    "dist/playwright/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
     "test": "playwright test",
     "test:smoke": "playwright test tests/e2e/specs/smoke/",
     "test:wp": "playwright test tests/e2e/specs/wordpress/",
     "test:wc": "playwright test tests/e2e/specs/woocommerce/",
     "test:ui": "playwright test --ui",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "test:compose": "./tests/generate-compose.test.sh"
+  },
+  "peerDependencies": {
+    "@playwright/test": ">=1.50.0"
+  },
+  "peerDependenciesMeta": {
+    "@playwright/test": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0"
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
   }
 }

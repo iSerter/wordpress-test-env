@@ -27,5 +27,11 @@ playwright-report/
 playwright/.cache/
 tests/e2e/.auth/
 
+# TypeScript build output
+dist/
+
+# Consumer-side Playwright auth state (when using our fixture)
+.wp-auth/
+
 # Plugins (Phase 2 - with-plugins branch)
 plugins/

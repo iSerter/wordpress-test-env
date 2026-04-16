@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=./wp-test-env.schema.json
+# Rename this file to wp-test-env.yml to activate.
+# See docs/dev-guide/config-file.md for the full reference.
+
+plugins:
+  - ./plugin        # create this dir (or symlink) alongside wp-test-env.yml
+                    # and put your plugin source inside it
+
+matrix:
+  - { php: "8.1", wp: "6.9" }   # oldest supported
+  - { php: "8.5", wp: "7.0" }   # newest supported
+
+seed:
+  woocommerce: false            # flip to true if your plugin integrates with WC
