@@ -8,15 +8,22 @@ The automation itself is implemented in:
 - [`package.json`](../../../package.json) — `"name": "@iserter/wp-test-env"`,
   `"publishConfig": { "access": "public" }`, `prepublishOnly: npm run build`,
   a `files` array that controls what ships in the tarball.
-- [`.github/workflows/npm-publish.yml`](../../../.github/workflows/npm-publish.yml)
-  — the workflow that runs `npm publish --provenance --access public` when
-  a GitHub release is published.
 - [`.github/workflows/release-please.yml`](../../../.github/workflows/release-please.yml)
-  — release-please opens release PRs and cuts GitHub releases when they merge.
+  — a single workflow with two jobs: `release-please` opens release PRs and
+  cuts GitHub releases when they merge; `publish` then runs `npm publish
+  --provenance --access public`, gated on release-please's `releases_created`
+  output.
 
 You only need to do the setup below once. After that, publishing is fully
-automatic: merge the release-please PR → GitHub release is created → npm
-publish workflow fires → package appears on npmjs.com.
+automatic: merge the release-please PR → release-please job creates the
+GitHub release → publish job fires in the same workflow → package appears
+on npmjs.com.
+
+> **Why one workflow instead of two?** GitHub Actions suppresses
+> `release: published` events for releases created by the default
+> `GITHUB_TOKEN`, so a standalone `on: release` workflow would never fire.
+> Chaining the publish job into the same workflow via `needs:` avoids the
+> need for a PAT.
 
 ---
 
@@ -84,8 +91,8 @@ long-lived token. Use an **automation** token — it has `2FA` exempted
 1. On GitHub, navigate to the repo's **Settings → Secrets and variables →
    Actions**.
 2. Click **New repository secret**.
-3. Name: `NPM_TOKEN` (must match the name referenced in
-   `.github/workflows/npm-publish.yml`).
+3. Name: `NPM_TOKEN` (must match the name referenced in the `publish`
+   job of `.github/workflows/release-please.yml`).
 4. Value: the `npm_…` token from step 2.
 5. Save.
 
@@ -150,12 +157,13 @@ Once the setup above is done, publishing is hands-off:
    `feat:` = minor, `fix:` = patch, `BREAKING CHANGE:` = major) and a
    draft CHANGELOG.
 3. **Merge the release PR** when you're ready to cut a release. Merging it
-   triggers release-please to:
+   triggers the `release-please` job to:
    - Commit the CHANGELOG update and bumped `package.json` version.
-   - Create a git tag `vX.Y.Z`.
+   - Create a git tag `wp-test-env-vX.Y.Z`.
    - Publish a GitHub Release with the CHANGELOG notes.
-4. **The npm-publish workflow fires** on the `release: published` event.
-   It re-checks that `package.json` version matches the tag, runs
+4. **The `publish` job in the same workflow fires** once release-please
+   reports `releases_created: true`. It checks out the release tag,
+   re-checks that `package.json` version matches the release version, runs
    `prepublishOnly` (which runs `npm run build` to emit the Playwright
    fixture `dist/`), and publishes.
 
@@ -188,8 +196,9 @@ malformed, or expired. Re-generate and re-add.
 `@iserter` scope is owned by someone else, or your npm account isn't a
 member. Check https://www.npmjs.com/~<your-username>.
 
-**"package.json version does not match tag"** — The guard step in
-npm-publish.yml caught a mismatch. This usually means someone edited
+**"package.json version does not match release version"** — The guard
+step in the `publish` job caught a mismatch between `package.json` and
+release-please's reported version. This usually means someone edited
 `package.json` version by hand instead of going through release-please.
 Fix `package.json`, retrigger the workflow manually via the Actions tab.
 

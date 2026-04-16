@@ -5,14 +5,46 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      tag_name: ${{ steps.release.outputs['.--tag_name'] }}
+      version: ${{ steps.release.outputs['.--version'] }}
     steps:
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # npm provenance
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+      - name: Verify package.json version matches release
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          VERSION="${{ needs.release-please.outputs.version }}"
+          if [[ "$PKG_VERSION" != "$VERSION" ]]; then
+            echo "::error::package.json version ($PKG_VERSION) does not match release version ($VERSION)"
+            exit 1
+          fi
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
