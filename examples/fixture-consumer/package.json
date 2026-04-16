@@ -1,0 +1,13 @@
+{
+  "name": "wp-test-env-fixture-consumer-example",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal example consuming @iserter/wp-test-env/playwright fixture.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@iserter/wp-test-env": "file:../..",
+    "@playwright/test": "^1.52.0"
+  }
+}
