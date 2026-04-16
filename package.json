@@ -20,7 +20,7 @@
   "license": "MIT",
   "author": "iSerter",
   "bin": {
-    "wp-test-env": "./bin/wp-test-env.js"
+    "wp-test-env": "bin/wp-test-env.js"
   },
   "exports": {
     "./playwright": {
